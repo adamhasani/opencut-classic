@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { KeyboardEvent, MouseEvent } from "react";
-import { useEffect, useState } from "react";
+import type { ChangeEvent, KeyboardEvent, MouseEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { EditorCore } from "@/core";
 import { MigrationDialog } from "@/project/components/migration-dialog";
@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEditor } from "@/editor/use-editor";
+import { importProjectPackage } from "@/project/import-package";
 import { useProjectsStore } from "./store";
 import type {
 	TProjectMetadata,
@@ -184,6 +185,7 @@ function ProjectsHeader() {
 
 				<div className="flex items-center gap-3 md:gap-4">
 					<SearchBar className="hidden md:block" />
+					<ImportPackageButton />
 					<NewProjectButton />
 				</div>
 			</div>
@@ -501,6 +503,56 @@ function SortDropdown({ children }: { children: React.ReactNode }) {
 				</DropdownMenuCheckboxItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
+	);
+}
+
+function ImportPackageButton() {
+	const editor = useEditor();
+	const router = useRouter();
+	const inputRef = useRef<HTMLInputElement>(null);
+	const [isImporting, setIsImporting] = useState(false);
+
+	const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+		const selectedFile = event.target.files?.[0];
+		event.target.value = "";
+		if (!selectedFile) return;
+
+		setIsImporting(true);
+		try {
+			const { projectId } = await importProjectPackage({ file: selectedFile });
+			await editor.project.loadAllProjects();
+			router.push(`/editor/${projectId}`);
+		} catch (error) {
+			toast.error("Failed to import package", {
+				description:
+					error instanceof Error ? error.message : "Please try again",
+			});
+		} finally {
+			setIsImporting(false);
+		}
+	};
+
+	return (
+		<>
+			<input
+				ref={inputRef}
+				type="file"
+				accept=".zip,application/zip"
+				className="hidden"
+				onChange={handleFileChange}
+			/>
+			<Button
+				size="lg"
+				variant="outline"
+				className="flex px-5 md:px-6"
+				disabled={isImporting}
+				onClick={() => inputRef.current?.click()}
+			>
+				<span className="text-sm font-medium">
+					{isImporting ? "Importing..." : "Impor Paket"}
+				</span>
+			</Button>
+		</>
 	);
 }
 
