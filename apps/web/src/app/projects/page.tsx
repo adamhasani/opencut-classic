@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEditor } from "@/editor/use-editor";
 import { importProjectPackage } from "@/project/import-package";
+import { CapcutTemplateButton } from "@/project/components/capcut-template-dialog";
 import { useProjectsStore } from "./store";
 import type {
 	TProjectMetadata,
@@ -185,6 +186,7 @@ function ProjectsHeader() {
 
 				<div className="flex items-center gap-3 md:gap-4">
 					<SearchBar className="hidden md:block" />
+					<CapcutTemplateButton />
 					<ImportPackageButton />
 					<NewProjectButton />
 				</div>
